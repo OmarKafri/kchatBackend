@@ -7,7 +7,8 @@
   "type": "commonjs",
   "main": "socketServer.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node socketServer.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
