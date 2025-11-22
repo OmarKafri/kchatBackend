@@ -8,6 +8,7 @@ const { ExpressPeerServer } = require("peer");
 
 const app = express();
 const server = http.createServer(app);
+const NEXTJS_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 // The path "/" means the server will handle requests at the mount point
 // Since we mount at "/peerjs", the server will be accessible at "/peerjs"
@@ -15,7 +16,7 @@ const peerServer = ExpressPeerServer(server, {
     path: "/",
     key: "peerjs", // Default key, can be omitted but explicit is clearer
     allow_discovery: true,
-    proxied: false,
+    proxied: true,
     debug: true,
     ssl: false,
 });
@@ -51,7 +52,7 @@ io.on("connection", (socket) => {
         console.log("Message received:", msg);
 
         try {
-            const res = await fetch("http://localhost:3000/api/messages", {
+            const res = await fetch(`${NEXTJS_API_URL}/api/messages`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -82,7 +83,7 @@ io.on("connection", (socket) => {
     });
     socket.on("message_read", async (obj) => {
         try {
-             await fetch("http://localhost:3000/api/messages/read", {
+             await fetch(`${NEXTJS_API_URL}/api/messages/read`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -106,7 +107,7 @@ io.on("connection", (socket) => {
     socket.on("call_ended", async (obj) => {
         try {
             
-            const conversationRes = await fetch("http://localhost:3000/api/conversation", {
+            const conversationRes = await fetch(`${NEXTJS_API_URL}/api/conversation`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -129,7 +130,7 @@ io.on("connection", (socket) => {
             }
 
             
-            const senderRes = await fetch(`http://localhost:3000/api/user?userID=${obj.senderId}`);
+            const senderRes = await fetch(`${NEXTJS_API_URL}/api/user?userID=${obj.senderId}`);
             let senderUsername = "Unknown";
             if (senderRes.ok) {
                 const senderData = await senderRes.json();
@@ -137,7 +138,7 @@ io.on("connection", (socket) => {
             }
 
             
-            const messageRes = await fetch("http://localhost:3000/api/messages", {
+            const messageRes = await fetch(`${NEXTJS_API_URL}/api/messages`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -170,7 +171,7 @@ io.on("connection", (socket) => {
     socket.on("accept_call", async (obj) => {
         try {
             // Get receiver's username
-            const receiverRes = await fetch(`http://localhost:3000/api/user?userID=${obj.receiverId}`);
+            const receiverRes = await fetch(`${NEXTJS_API_URL}/api/user?userID=${obj.receiverId}`);
             let receiverUsername = "Unknown";
             if (receiverRes.ok) {
                 const receiverData = await receiverRes.json();
