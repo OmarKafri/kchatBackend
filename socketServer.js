@@ -13,8 +13,10 @@ const NEXTJS_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000
 
 const PORT= process.env.PORT || 3000
 
+
 const peerServer = ExpressPeerServer(server, {
     path: "/",
+    key: "peerjs", 
     allow_discovery: true,
     proxied: true,
     debug: true,
