@@ -10,6 +10,9 @@ const app = express();
 const server = http.createServer(app);
 const NEXTJS_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
+
+const PORT= process.env.PORT || 4000
+
 // The path "/" means the server will handle requests at the mount point
 // Since we mount at "/peerjs", the server will be accessible at "/peerjs"
 const peerServer = ExpressPeerServer(server, {
@@ -226,7 +229,7 @@ io.on("connection", (socket) => {
     });
 });
 
-server.listen(4000, () => {
+server.listen(PORT, () => {
     console.log("socket.io server running on http://localhost:4000");
     console.log("peerjs server running on http://localhost:4000/peerjs");
 });
