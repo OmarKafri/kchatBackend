@@ -229,7 +229,7 @@ io.on("connection", (socket) => {
     });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT,"0.0.0.0",() => {
     console.log("socket.io server running on http://localhost:4000");
     console.log("peerjs server running on http://localhost:4000/peerjs");
 });
