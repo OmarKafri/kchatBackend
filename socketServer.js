@@ -77,6 +77,62 @@ io.on("connection", (socket) => {
       }
 
       try {
+        // Fetch conversation history for context
+        let conversationHistory = [];
+        try {
+          const historyRes = await fetch(
+            `${NEXTJS_API_URL}/api/messages?conversationId=${msg.conversation_id}`
+          );
+          
+          if (historyRes.ok) {
+            const allMessages = await historyRes.json();
+            
+            // Filter out missed call messages and get last 30 messages for context
+            const relevantMessages = allMessages
+              .filter((m) => !m.content.startsWith("Missed Call From"))
+              .slice(-30);
+            
+            // Format messages for OpenAI API
+            conversationHistory = relevantMessages.map((m) => {
+              if (m.content.startsWith("🤖 ")) {
+                // Bot message
+                return {
+                  role: "assistant",
+                  content: m.content.replace(/^🤖 /, ""),
+                };
+              } else if (m.content.startsWith("@kchat")) {
+                // Previous user question to bot
+                return {
+                  role: "user",
+                  content: m.content.replace("@kchat", "").trim(),
+                };
+              } else {
+                // Regular user message
+                return {
+                  role: "user",
+                  content: m.content,
+                };
+              }
+            });
+          }
+        } catch (historyError) {
+          console.warn("Could not load conversation history:", historyError.message);
+          // Continue without history if fetch fails
+        }
+
+        // Build messages array with system prompt, history, and current question
+        const messagesForOpenAI = [
+          {
+            role: "system",
+            content: "You are KChat bot. Answer briefly and clearly. You have access to the conversation history between the users, so you can reference previous messages, analyze the conversation, answer questions about what was discussed, find patterns, and maintain context.",
+          },
+          ...conversationHistory,
+          {
+            role: "user",
+            content: userQuestion,
+          },
+        ];
+
         const res = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -85,16 +141,7 @@ io.on("connection", (socket) => {
           },
           body: JSON.stringify({
             model: "gpt-4o-mini",
-            messages: [
-              {
-                role: "system",
-                content: "You are KChat bot. Answer briefly and clearly.",
-              },
-              {
-                role: "user",
-                content: userQuestion,
-              },
-            ],
+            messages: messagesForOpenAI,
           }),
         });
 
